@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <errno.h>
 #include <unistd.h>
 
@@ -47,11 +48,14 @@
  */
 
 /**
- * Prints a log message with a newline character.
+ * Prints a log message bracketed between a carriage return and a linefeed character.
  */
 void log_message(const char* msgfmt, ...) {
     va_list args;
     va_start(args, msgfmt);
+
+    // print CR
+    fprintf(stderr, "\r");
 
     // print prefix
     char prefix[] = "zsync_legacy: ";
@@ -60,7 +64,7 @@ void log_message(const char* msgfmt, ...) {
     // print formatted message
     vfprintf(stderr, msgfmt, args);
 
-    // print newline
+    // print LF
     fprintf(stderr, "\n");
 
     va_end(args);
@@ -196,8 +200,8 @@ void http_load_ranges(struct range_fetch* rf)
         i = rf->rangessent;
         l = strlen(ranges_opt);
         snprintf(range, sizeof(range), OFF_T_PF "-" OFF_T_PF ",",
-                 rf->ranges_todo[2 * i], rf->ranges_todo[2 * i + 1]);
-        strncat(ranges_opt, range, l + strlen(range));
+                 (intmax_t) rf->ranges_todo[2 * i], (intmax_t) rf->ranges_todo[2 * i + 1]);
+        strncat(ranges_opt, range, sizeof(ranges_opt) - l - 1);
         rf->rangessent++;
     }
 
@@ -516,25 +520,25 @@ int range_fetch_read_http_headers(struct range_fetch *rf) {
 
         if (rfgets(buf, sizeof(buf), rf) == NULL){
             /* most likely unexpected EOF from server */
-            log_message("EOF from server\n");
+            log_message("EOF from server");
             return -1;
         }
         if (buf[0] == 0)
             return 0;           /* EOF, caller decides if that's an error */
         if (memcmp(buf, "HTTP/1", 6) != 0 || (p = strchr(buf, ' ')) == NULL) {
-            log_message("got non-HTTP response '%s'\n", buf);
+            log_message("got non-HTTP response '%s'", buf);
             return -1;
         }
         status = atoi(p + 1);
         if (status != 206 && status != 301 && status != 302) {
             if (status >= 300 && status < 400) {
                 log_message(
-                        "\nzsync received a redirect/further action required status code: %d\nzsync specifically refuses to proceed when a server requests further action. This is because zsync makes a very large number of requests per file retrieved, and so if zsync has to perform additional actions per request, it further increases the load on the target server. The person/entity who created this zsync file should change it to point directly to a URL where the target file can be retrieved without additional actions/redirects needing to be followed.\nSee http://zsync.moria.orc.uk/server-issues",
+                        "zsync received a redirect/further action required status code: %d\nzsync specifically refuses to proceed when a server requests further action. This is because zsync makes a very large number of requests per file retrieved, and so if zsync has to perform additional actions per request, it further increases the load on the target server. The person/entity who created this zsync file should change it to point directly to a URL where the target file can be retrieved without additional actions/redirects needing to be followed.\nSee http://zsync.moria.orc.uk/server-issues",
                         status);
             }
             else if (status == 200) {
                 log_message(
-                        "\nzsync received a data response (code %d) but this is not a partial content response\nzsync can only work with servers that support returning partial content from files. The person/entity creating this .zsync has tried to use a server that is not returning partial content. zsync cannot be used with this server.\nSee http://zsync.moria.orc.uk/server-issues",
+                        "zsync received a data response (code %d) but this is not a partial content response\nzsync can only work with servers that support returning partial content from files. The person/entity creating this .zsync has tried to use a server that is not returning partial content. zsync cannot be used with this server.\nSee http://zsync.moria.orc.uk/server-issues",
                         status);
             }
             else {
@@ -581,7 +585,7 @@ int range_fetch_read_http_headers(struct range_fetch *rf) {
             /* Okay, we're getting a non-MIME block from the remote. Get the
              * range and set our state appropriately */
             int from, to;
-            sscanf(p, "bytes " OFF_T_PF "-" OFF_T_PF "/", &from, &to);
+            sscanf(p, "bytes " OFF_T_PF "-" OFF_T_PF "/", (intmax_t *) &from, (intmax_t *) &to);
             if (from <= to) {
                 rf->block_left = to + 1 - from;
                 rf->offset = from;
@@ -727,7 +731,7 @@ int get_range_block(struct range_fetch *rf, off_t * offset, unsigned char *data,
                 if (2 ==
                     sscanf(buf,
                            "content-range: bytes " OFF_T_PF "-" OFF_T_PF "/",
-                           &from, &to)) {
+                           (intmax_t *) &from, (intmax_t *) &to)) {
                     rf->offset = from;
                     rf->block_left = to - from + 1;
                     gotr = 1;

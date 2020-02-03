@@ -43,8 +43,13 @@ int main(const int argc, const char** argv) {
     );
 
     args::ValueFlag<string> outputFilename(parser, "path",
-        "Path to local file which should be created. If not given, file path in .zsync file will be used.",
+        "Path to local file which should be created or overwritten. If not given, file path in .zsync file will be used.",
         {'o', "output"}
+    );
+
+    args::ValueFlag<string> refererUrl(parser, "URL",
+        "Referer URL. If not given, URL in .zsync file will be used.",
+        {'u', "url"}
     );
 
     args::Flag forceUpdate(parser, "", "Skip update check and force update", {"force-update"});
@@ -100,16 +105,33 @@ int main(const int argc, const char** argv) {
 
     // redirect cout/cerr to /dev/null in quiet mode
     if (quietMode) {
-        freopen("/dev/null", "a", stdout);
-        freopen("/dev/null", "a", stderr);
+        if (!freopen("/dev/null", "a", stdout)) {
+            cerr << "Failed to redirect stdout to /dev/null!" << endl;
+            return 1;
+        }
+        if (!freopen("/dev/null", "a", stderr)) {
+            cerr << "Failed to redirect stderr to /dev/null!" << endl;
+            return 1;
+        }
     }
 
     string outPath;
 
-    if (outputFilename)
+    if (outputFilename) {
         outPath = outputFilename.Get();
+    }
 
-    zsync2::ZSyncClient client(pathOrUrl.Get(), outPath);
+    string refUrl;
+
+    if (refererUrl) {
+        refUrl = refererUrl.Get();
+        if (!refUrl.empty() && refUrl.back() != '/') {
+            cerr << "Referer URL must actually be an URL (i.e., end with a /)!" << endl;
+            return 1;
+        }
+    }
+
+    zsync2::ZSyncClient client(pathOrUrl.Get(), outPath, true, refUrl);
 
     // unimplemented flags
     if (httpInsecureMode)
@@ -117,6 +139,12 @@ int main(const int argc, const char** argv) {
 
     if (saveZSyncFilePath)
         client.storeZSyncFileInPath(saveZSyncFilePath.Get());
+
+    if (seedFiles) {
+        for (const auto& seedFile : seedFiles.Get()) {
+            client.addSeedFile(seedFile);
+        }
+    }
 
     if (checkForChanges || !forceUpdate) {
         cout << "Checking for changes..." << endl;
@@ -137,12 +165,6 @@ int main(const int argc, const char** argv) {
         } else {
             cout << "No changes detected, file is up to date." << endl;
             return 0;
-        }
-    }
-
-    if (seedFiles) {
-        for (const auto& seedFile : seedFiles.Get()) {
-            client.addSeedFile(seedFile);
         }
     }
 

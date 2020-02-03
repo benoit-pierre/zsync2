@@ -37,7 +37,7 @@ namespace zsync2 {
         // there might be more than one seed file
         // using a set to avoid duplicate entries
         std::set<std::string> seedFiles;
-        
+
         const std::string pathOrUrlToZSyncFile;
         std::string pathToLocalFile;
         std::string pathToStoreZSyncFileInLocally;
@@ -68,15 +68,21 @@ namespace zsync2 {
         Private(
             std::string pathOrUrlToZSyncFile,
             const std::string& pathToLocalFile,
-            const bool overwrite
+            const bool overwrite,
+            const std::string& refererUrl
         ) : pathOrUrlToZSyncFile(std::move(pathOrUrlToZSyncFile)), zsHandle(nullptr), state(INITIALIZED),
                                  localUsed(0), httpDown(0), remoteFileSizeCache(-1),
-                                 zSyncFileStoredLocallyAlready(false), rangesOptimizationThreshold(0) {
+                                 zSyncFileStoredLocallyAlready(false), rangesOptimizationThreshold(64 * 4096) {
             // if the local file should be overwritten, we'll instruct
             if (overwrite) {
                 this->pathToLocalFile = pathToLocalFile;
             } else {
                 this->seedFiles.insert(pathToLocalFile);
+            }
+
+            // if we specified a referer URL, use it
+            if (!refererUrl.empty() && refererUrl.back() == '/') {
+                this->referer = refererUrl;
             }
 
             // initialize cwd
@@ -87,9 +93,9 @@ namespace zsync2 {
                 free(cwdBuf);
             }
         }
-        
+
         ~Private() = default;
-        
+
     public:
         // by default, the messages are pushed into a queue which can be fetched by calling the client's
         // nextStatusMessage()
@@ -478,7 +484,7 @@ namespace zsync2 {
 
             std::stringstream oss;
             oss << "optimized ranges, old requests count " << ranges.size()
-                << ", new requests count " << optimizedRanges.size() << std::endl;
+                << ", new requests count " << optimizedRanges.size();
 
             issueStatusMessage(oss.str());
 
@@ -679,6 +685,13 @@ namespace zsync2 {
 
             // begin downloading ranges, one by one
             {
+                #ifdef ZSYNC_STANDALONE
+                /* Set up progress display to run during the fetch */
+                struct progress p = { 0, 0, 0, 0 };
+                fputc('\n', stderr);
+                do_progress(&p, 0, 0);
+                #endif
+                int len;
                 for (const auto& pair : ranges) {
                     auto beginbyte = pair.first;
                     auto endbyte = pair.second;
@@ -689,16 +702,7 @@ namespace zsync2 {
                     range_fetch_addranges(rf, single_range, 1);
 
                     {
-                        int len;
                         off_t zoffset;
-
-                        #ifdef ZSYNC_STANDALONE
-                        struct progress p = { 0, 0, 0, 0 };
-
-                        /* Set up progress display to run during the fetch */
-                        fputc('\n', stderr);
-                        do_progress(&p, (float) calculateProgress() * 100.0f, range_fetch_bytes_down(rf));
-                        #endif
 
                         /* Loop while we're receiving data, until we're done or there is an error */
                         while (!ret
@@ -727,13 +731,12 @@ namespace zsync2 {
                          *could be data in its buffer that it can use or needs to process */
                             zsync_receive_data(zr, nullptr, zoffset, 0);
                         }
-
-                        #ifdef ZSYNC_STANDALONE
-                        end_progress(&p, zsync_status(zsHandle) >= 2 ? 2 : len == 0 ? 1 : 0);
-                        #endif
                     }
 
                 }
+                #ifdef ZSYNC_STANDALONE
+                end_progress(&p, zsync_status(zsHandle) >= 2 ? 2 : len == 0 ? 1 : 0);
+                #endif
             }
 
             /* Clean up */
@@ -966,7 +969,8 @@ namespace zsync2 {
 
             // check whether file exists at all, because if not, a full download is required
             if (!isfile(pathToLocalFile)) {
-                issueStatusMessage("Cannot find file " + pathToLocalFile + ", triggering full download");
+                // Not actually a full download if we have seed file(s) ;).
+                issueStatusMessage("Cannot find file " + pathToLocalFile + ", triggering " + (seedFiles.size() == 0U ? "full" : "delta") + " download");
                 updateAvailable = true;
                 return true;
             }
@@ -1047,8 +1051,8 @@ namespace zsync2 {
         }
     };
 
-    ZSyncClient::ZSyncClient(const std::string pathOrUrlToZSyncFile, const std::string pathToLocalFile, bool overwrite) {
-        d = new Private(pathOrUrlToZSyncFile, pathToLocalFile, overwrite);
+    ZSyncClient::ZSyncClient(const std::string pathOrUrlToZSyncFile, const std::string pathToLocalFile, bool overwrite, const std::string refererUrl) {
+        d = new Private(pathOrUrlToZSyncFile, pathToLocalFile, overwrite, refererUrl);
     }
     ZSyncClient::~ZSyncClient() {
         delete d;
