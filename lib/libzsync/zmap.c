@@ -273,9 +273,9 @@ off_t *zmap_to_compressed_ranges(const struct zmap *zm, off_t * byterange,
         /* (try to) Find byte ranges in the compressed file to get this the ith
          * byterange. */
         k = find_compressed_ranges_for(zm, zbyterange, k, &lastwroteblockstart_inbitoffset,
-                                       byterange[2 * i], byterange[2 * i + 1]);
+                                       (intmax_t) byterange[2 * i], (intmax_t) byterange[2 * i + 1]);
         if (k < 0) {
-            fprintf(stderr, "Z-Map couldn't tell us how to find " OFF_T_PF "-" OFF_T_PF "\n", (intmax_t) byterange[2 * i], (intmax_t) byterange[2 * i + 1]);
+            fprintf(stderr, "Z-Map couldn't tell us how to find " OFF_T_PF "-" OFF_T_PF "\n", byterange[2 * i], byterange[2 * i + 1]);
             free(zbyterange);
             return NULL;
         }

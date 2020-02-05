@@ -512,7 +512,11 @@ namespace zsync2 {
                 }
             }
 
+            #ifdef ZSYNC_STANDALONE
+            zsync_submit_source_file(zsHandle, f, true);
+            #else
             zsync_submit_source_file(zsHandle, f, false);
+            #endif
 
             if (fclose(f) != 0) {
                 issueStatusMessage("fclose() on file handle failed!");
@@ -687,9 +691,11 @@ namespace zsync2 {
             {
                 #ifdef ZSYNC_STANDALONE
                 /* Set up progress display to run during the fetch */
-                struct progress p = { 0, 0, 0, 0 };
+                struct progress *p;
                 fputc('\n', stderr);
-                do_progress(&p, 0, 0);
+                p = start_progress();
+                do_progress(p, (float) calculateProgress() * 100.0f,
+                                        range_fetch_bytes_down(rf));
                 #endif
                 int len;
                 for (const auto& pair : ranges) {
@@ -714,7 +720,7 @@ namespace zsync2 {
 
                             #ifdef ZSYNC_STANDALONE
                             /* Maintain progress display */
-                            do_progress(&p, (float) calculateProgress() * 100.0f,
+                            do_progress(p, (float) calculateProgress() * 100.0f,
                                         range_fetch_bytes_down(rf));
                             #endif
 
@@ -729,13 +735,14 @@ namespace zsync2 {
                         }
                         else{    /* Else, let the zsync receiver know that we're at EOF; there
                          *could be data in its buffer that it can use or needs to process */
-                            zsync_receive_data(zr, nullptr, zoffset, 0);
+                            if (zsync_receive_data(zr, nullptr, zoffset, 0) != 0)
+                                ret = 1;
                         }
                     }
 
                 }
                 #ifdef ZSYNC_STANDALONE
-                end_progress(&p, zsync_status(zsHandle) >= 2 ? 2 : len == 0 ? 1 : 0);
+                end_progress(p, zsync_status(zsHandle) >= 2 ? 2 : len == 0 ? 1 : 0);
                 #endif
             }
 

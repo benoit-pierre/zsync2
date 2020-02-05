@@ -36,9 +36,9 @@
  * Creates and returns an rcksum_state with the given properties
  */
 struct rcksum_state *rcksum_init(zs_blockid nblocks, size_t blocksize,
-                                 int rsum_bytes, int checksum_bytes,
+                                 int rsum_bytes, unsigned int checksum_bytes,
                                  int require_consecutive_matches,
-                                 char* directory) {
+                                 char *directory) {
     /* Allocate memory for the object */
     struct rcksum_state *rs = malloc(sizeof(struct rcksum_state));
     if (rs == NULL) return NULL;
@@ -47,6 +47,7 @@ struct rcksum_state *rcksum_init(zs_blockid nblocks, size_t blocksize,
     rs->blocksize = blocksize;
     rs->blocks = nblocks;
     rs->rsum_a_mask = rsum_bytes < 3 ? 0 : rsum_bytes == 3 ? 0xff : 0xffff;
+    rs->rsum_bits = rsum_bytes * 8;
     rs->checksum_bytes = checksum_bytes;
     rs->seq_matches = require_consecutive_matches;
 
@@ -129,24 +130,24 @@ int rcksum_filehandle(struct rcksum_state *rs) {
 }
 
 /* rcksum_end - destructor */
-void rcksum_end(struct rcksum_state *z) {
+void rcksum_end(struct rcksum_state *rs) {
     /* Free temporary file resources */
-    if (z->fd != -1)
-        close(z->fd);
-    if (z->filename) {
-        unlink(z->filename);
-        free(z->filename);
+    if (rs->fd != -1)
+        close(rs->fd);
+    if (rs->filename) {
+        unlink(rs->filename);
+        free(rs->filename);
     }
 
     /* Free other allocated memory */
-    free(z->rsum_hash);
-    free(z->blockhashes);
-    free(z->bithash);
-    free(z->ranges);            // Should be NULL already
+    free(rs->rsum_hash);
+    free(rs->blockhashes);
+    free(rs->bithash);
+    free(rs->ranges);            // Should be NULL already
 #ifdef DEBUG
-    fprintf(stderr, "hashhit %d, weakhit %d, checksummed %d, stronghit %d\n",
-            z->stats.hashhit, z->stats.weakhit, z->stats.checksummed,
-            z->stats.stronghit);
+    fprintf(stderr, "hashhit %lld, weakhit %d, checksummed %d, stronghit %d\n",
+            rs->stats.hashhit, rs->stats.weakhit, rs->stats.checksummed,
+            rs->stats.stronghit);
 #endif
-    free(z);
+    free(rs);
 }
