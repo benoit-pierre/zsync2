@@ -105,7 +105,7 @@ namespace zsync2 {
 #ifndef ZSYNC_STANDALONE
             statusMessages.push_back(message);
 #else
-            std::cerr << message << std::endl;
+            std::cerr << message << std::endl << std::ends;
 #endif
         }
 

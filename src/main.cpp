@@ -74,7 +74,7 @@ int main(const int argc, const char** argv) {
     // always show version statement
     cerr << "zsync2 version " << VERSION
          << " (commit " << GIT_COMMIT << "), "
-         << "build " << BUILD_NUMBER << " built on " << BUILD_DATE << endl;
+         << "build " << BUILD_NUMBER << " built on " << BUILD_DATE << endl << ends;
 
     // check whether any flag has been specified which wants the application to exit immediately
     if (showVersion) {
@@ -95,11 +95,11 @@ int main(const int argc, const char** argv) {
         string redirectedUrl;
 
         if (!zsync2::resolveRedirections(pathOrUrl.Get(), redirectedUrl)) {
-            cerr << "Failed to resolve redirection!" << endl;
+            cerr << "Failed to resolve redirection!" << endl << ends;
             return 1;
         }
 
-        cout << redirectedUrl << endl;
+        cout << redirectedUrl << endl << ends;
         return 0;
     }
 
@@ -126,7 +126,7 @@ int main(const int argc, const char** argv) {
     if (refererUrl) {
         refUrl = refererUrl.Get();
         if (!refUrl.empty() && refUrl.back() != '/') {
-            cerr << "Referer URL must actually be an URL (i.e., end with a /)!" << endl;
+            cerr << "Referer URL must actually be an URL (i.e., end with a /)!" << endl << ends;
             return 1;
         }
     }
@@ -147,23 +147,23 @@ int main(const int argc, const char** argv) {
     }
 
     if (checkForChanges || !forceUpdate) {
-        cout << "Checking for changes..." << endl;
+        cout << "Checking for changes..." << endl << ends;
 
         bool changesAvailable;
 
         // return some non-0/1 error code in case the update check itself fails
         if (!client.checkForChanges(changesAvailable)) {
-            cerr << "Failed to check for changes!" << endl;
+            cerr << "Failed to check for changes!" << endl << ends;
             return 3;
         }
 
         if (changesAvailable) {
             if (checkForChanges) {
-                cout << "File has changed on the server, update required." << endl;
+                cout << "File has changed on the server, update required." << endl << ends;
                 return 1;
             }
         } else {
-            cout << "No changes detected, file is up to date." << endl;
+            cout << "No changes detected, file is up to date." << endl << ends;
             return 0;
         }
     }

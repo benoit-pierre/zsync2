@@ -55,7 +55,7 @@ void log_message(const char* msgfmt, ...) {
     va_start(args, msgfmt);
 
     // print CR
-    fprintf(stderr, "\r");
+    fputc('\r', stderr);
 
     // print prefix
     char prefix[] = "zsync_legacy: ";
@@ -65,7 +65,9 @@ void log_message(const char* msgfmt, ...) {
     vfprintf(stderr, msgfmt, args);
 
     // print LF
-    fprintf(stderr, "\n");
+    fputc('\n', stderr);
+    // print NULL
+    fputc('\0', stderr);
 
     va_end(args);
 }

@@ -90,6 +90,7 @@ void do_progress(struct progress *p, float pcnt, long long newdl) {
         else
             fputs("           ", stdout);
     }
+    putchar('\0');
     fflush(stdout);
 }
 
@@ -111,6 +112,7 @@ void end_progress(struct progress *p, int done) {
         printf(" %.1f kBps ", rate / 1000.0);
     }
     puts(done == 2 ? "DONE    \n" : !done ? "aborted    \n" : "        \n");
+    putchar('\0');
     fflush(stdout);
     free(p);
 }
