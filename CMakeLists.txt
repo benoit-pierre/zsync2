@@ -31,10 +31,10 @@ endforeach()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # versioning data
-set(VERSION "2.0.0-alpha-1")
+set(VERSION "2.0.0-alpha.1")
 
 if("$ENV{TRAVIS_BUILD_NUMBER}" STREQUAL "")
-    set(BUILD_NUMBER "<local dev build>")
+    set(BUILD_NUMBER "<KOReader>")
 else()
     set(BUILD_NUMBER "$ENV{TRAVIS_BUILD_NUMBER}")
 endif()
