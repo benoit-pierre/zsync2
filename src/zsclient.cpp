@@ -513,6 +513,7 @@ namespace zsync2 {
             }
 
             #ifdef ZSYNC_STANDALONE
+            fputc('\n', stderr);
             zsync_submit_source_file(zsHandle, f, true);
             #else
             zsync_submit_source_file(zsHandle, f, false);
