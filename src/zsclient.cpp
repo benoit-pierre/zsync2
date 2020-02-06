@@ -667,6 +667,26 @@ namespace zsync2 {
                 }
             }
 
+            // NOTE: If we're requesting the same ranges as the previous fetch, grow each range by one block per retry.
+            //       We've managed to hit corner cases in which zsync_status returned 1 because it was missing a single block,
+            //       but repeatedly failed to fullfill that for some reason, ending up re-downloading the same ranges forever...
+            //       Since the range calculation is probably way over my head, use a crappy workaround instead ;).
+            // NOTE: We *technically* ought to be checking the ranges in detail (i.e., start:end pairs),
+            //       but this does the job, and it is much simpler.
+            // Counters have to be static, since this happens across subsequent fetchRemainingBlocksHttp calls.
+            static int last_nrange;
+            static unsigned int retries;
+            bool fudge_ranges = false;
+            if (ranges.size() == last_nrange) {
+                // We'll fudge later so as not to mess with the ranges optimization, which will probably mask the issue anyway...
+                fudge_ranges = true;
+                retries++;
+                issueStatusMessage("Range loop detected (retry: " + std::to_string(retries) + ")!");
+            } else {
+                retries = 0U;
+            }
+            last_nrange = ranges.size();
+
             if (rangesOptimizationThreshold > 0) {
                 // optimize ranges by combining ones with rather small distances
                 optimizeRanges(ranges, rangesOptimizationThreshold);
@@ -701,6 +721,12 @@ namespace zsync2 {
                 for (const auto& pair : ranges) {
                     auto beginbyte = pair.first;
                     auto endbyte = pair.second;
+                    // See the NOTE above about this dirty hack...
+                    if (fudge_ranges) {
+                        // Clamp to remote file size just in case...
+                        endbyte = std::min(endbyte + (4096 * retries), zsync_filelen(zsHandle));
+
+                    }
 
                     off_t single_range[2] = {beginbyte, endbyte};
                     /* And give that to the range fetcher */
@@ -715,8 +741,9 @@ namespace zsync2 {
                                && (len = get_range_block(rf, &zoffset, buffer.data(), BUFFERSIZE)) > 0) {
                             /* Pass received data to the zsync receiver, which writes it to the
                              * appropriate location in the target file */
-                            if (zsync_receive_data(zr, buffer.data(), zoffset, len) != 0)
+                            if (zsync_receive_data(zr, buffer.data(), zoffset, len) != 0) {
                                 ret = 1;
+                            }
 
                             #ifdef ZSYNC_STANDALONE
                             /* Maintain progress display */
@@ -732,11 +759,13 @@ namespace zsync2 {
                         if (len < 0) {
                             ret = -1;
                             break;
-                        }
-                        else{    /* Else, let the zsync receiver know that we're at EOF; there
-                         *could be data in its buffer that it can use or needs to process */
-                            if (zsync_receive_data(zr, nullptr, zoffset, 0) != 0)
+                        } else {
+                            /* Else, let the zsync receiver know that we're at EOF; there
+                             * could be data in its buffer that it can use or needs to process */
+                            if (zsync_receive_data(zr, nullptr, zoffset, 0) != 0) {
                                 ret = 1;
+                                break;
+                            }
                         }
                     }
 
@@ -765,6 +794,7 @@ namespace zsync2 {
                 return false;
             }
 
+            /* keep status for each URL - 0 means no error */
             int* status;
             status = static_cast<int*>(calloc(n, sizeof *status));
 
@@ -778,6 +808,7 @@ namespace zsync2 {
 
                     if (result != 0) {
                         issueStatusMessage("failed to retrieve from " + tryurl + ", status " + std::to_string(result));
+                        status[attempt] = 1;
                         return false;
                     }
                 }
