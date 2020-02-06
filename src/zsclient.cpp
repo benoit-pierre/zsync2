@@ -724,7 +724,7 @@ namespace zsync2 {
                     // See the NOTE above about this dirty hack...
                     if (fudge_ranges) {
                         // Clamp to remote file size just in case...
-                        endbyte = std::min(endbyte + (4096 * retries), zsync_filelen(zsHandle));
+                        endbyte = std::min<off_t>(endbyte + (4096 * retries), zsync_filelen(zsHandle));
 
                     }
 
