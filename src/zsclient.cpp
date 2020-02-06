@@ -513,7 +513,8 @@ namespace zsync2 {
             }
 
             #ifdef ZSYNC_STANDALONE
-            fputc('\n', stderr);
+            putchar('\n');
+            putchar('\0');
             zsync_submit_source_file(zsHandle, f, true);
             #else
             zsync_submit_source_file(zsHandle, f, false);
@@ -713,7 +714,8 @@ namespace zsync2 {
                 #ifdef ZSYNC_STANDALONE
                 /* Set up progress display to run during the fetch */
                 struct progress *p;
-                fputc('\n', stderr);
+                putchar('\n');
+                putchar('\0');
                 p = start_progress();
                 do_progress(p, (float) calculateProgress() * 100.0f,
                                         range_fetch_bytes_down(rf));
