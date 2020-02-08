@@ -31,6 +31,12 @@
 #include "rcksum.h"
 #include "internal.h"
 
+#ifdef DEBUG
+#    define UNUSED_BY_NDEBUG
+#else
+#    define UNUSED_BY_NDEBUG __attribute__((unused))
+#endif
+
 /* rcksum_add_target_block(self, blockid, rsum, checksum)
  * Sets the stored hash values for the given blockid to the given values.
  */
@@ -55,7 +61,7 @@ void rcksum_add_target_block(struct rcksum_state *z, zs_blockid b,
     }
 }
 
-static void print_hashstats(const struct rcksum_state* z) {
+static void print_hashstats(const struct rcksum_state* z UNUSED_BY_NDEBUG) {
 #ifdef DEBUG
     int i;
     {
@@ -139,7 +145,7 @@ int build_hash(struct rcksum_state *z) {
     int hash_bits = avail_bits;
 
     /* Pick a hash size that is a power of two and gives a load factor of <1 */
-    while ((1U << (hash_bits-1)) > z->blocks && hash_bits > 5)
+    while ((int) (1U << (hash_bits-1)) > z->blocks && hash_bits > 5)
         hash_bits--;
 
     /* Allocate hash based on rsum */
@@ -196,6 +202,7 @@ int build_hash(struct rcksum_state *z) {
     return 1;
 }
 
+/*
 static void sprint_checksum(char* buf, const struct hash_entry* t) {
         sprintf(buf, "%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x",
                 t->checksum[0], t->checksum[1],
@@ -207,6 +214,7 @@ static void sprint_checksum(char* buf, const struct hash_entry* t) {
                 t->checksum[12], t->checksum[13],
                 t->checksum[14], t->checksum[15]);
 }
+*/
 
 /* remove_block_from_hash(self, block_id)
  * Remove the given data block from the rsum hash table, so it won't be

@@ -219,8 +219,8 @@ struct zsync_state *zsync_begin(FILE * f, int headersOnly, const char* target_di
             }
             else if (!strcmp(buf, "Blocksize")) {
                 long blocksize = atol(p);
-                if (zs->blocksize < 0 || (zs->blocksize & (zs->blocksize - 1))) {
-                    fprintf(stderr, "nonsensical blocksize %ld\n", zs->blocksize);
+                if (zs->blocksize & (zs->blocksize - 1)) {
+                    fprintf(stderr, "nonsensical blocksize %zu\n", zs->blocksize);
                     free(zs);
                     return NULL;
                 }
@@ -250,7 +250,7 @@ struct zsync_state *zsync_begin(FILE * f, int headersOnly, const char* target_di
 
                 zblock = malloc(nzblocks * sizeof *zblock);
                 if (zblock) {
-                    if (fread(zblock, sizeof *zblock, nzblocks, f) < nzblocks) {
+                    if (fread(zblock, sizeof *zblock, nzblocks, f) < (size_t) nzblocks) {
                         fprintf(stderr, "premature EOF after Z-Map\n");
                         free(zs);
                         return NULL;
@@ -399,9 +399,11 @@ int zsync_hint_decompress(const struct zsync_state *zs) {
 
 /* zsync_blocksize(self)
  * Returns the blocksize used by zsync on this target. */
+/*
 static size_t zsync_blocksize(const struct zsync_state *zs) {
     return zs->blocksize;
 }
+*/
 
 /* char* = zsync_filename(self)
  * Returns the suggested filename to be used for the final result of this
@@ -642,7 +644,7 @@ int zsync_sha1(struct zsync_state *zs, int fh) {
         SHA1Final(digest, &shactx);
 
         for (i = 0; i < SHA1_DIGEST_LENGTH; i++) {
-            int j;
+            unsigned int j;
             sscanf(&(zs->checksum[2 * i]), "%2x", &j);
             if (j != digest[i]) {
                 return -1;
@@ -722,7 +724,7 @@ static int zsync_recompress(struct zsync_state *zs) {
                     p = skip_zhead(buf);
                     skip = 0;
                 }
-                int bytes_to_write = r - (p - buf);
+                size_t bytes_to_write = r - (p - buf);
                 if (fwrite(p, 1, bytes_to_write, zout) != bytes_to_write) {
                     perror("fwrite");
                     rc = -1;
@@ -951,7 +953,7 @@ static int zsync_receive_data_compressed(struct zsync_receiver *zr,
     zr->strm.next_in = (unsigned char *) buf;
     zr->strm.avail_in = len;
 
-    if (zr->strm.total_in == 0 || offset != zr->strm.total_in) {
+    if (zr->strm.total_in == 0 || (uLong) offset != zr->strm.total_in) {
         zsync_configure_zstream_for_zdata(zr->zs, &(zr->strm), offset,
                                           &(zr->outoffset));
 

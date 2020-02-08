@@ -58,8 +58,7 @@ void log_message(const char* msgfmt, ...) {
     fputc('\r', stderr);
 
     // print prefix
-    char prefix[] = "zsync_legacy: ";
-    fprintf(stderr, prefix, sizeof(prefix));
+    fputs("zsync_legacy: ", stderr);
 
     // print formatted message
     vfprintf(stderr, msgfmt, args);
