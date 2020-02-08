@@ -80,8 +80,8 @@ if(UNIX)
     endif()
 
     # Unsurprisingly, CMake makes this ridiculously harder than it ought to.
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wwrite-strings -Winline -Wextra -Wmissing-noreturn -Wredundant-decls -Wnested-externs -Wundef -Wbad-function-cast -Wcast-align -Wvolatile-register-var -Wformat=2 -Wformat-signedness -Wformat-truncation=1 -Wno-implicit-fallthrough")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wwrite-strings -Winline -Wextra -Wmissing-noreturn -Wredundant-decls -Wnested-externs -Wundef -Wbad-function-cast -Wcast-align -Wvolatile-register-var -Wformat=2 -Wformat-signedness -Wformat-truncation=1 -Wno-implicit-fallthrough")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wwrite-strings -Winline -Wextra -Wmissing-noreturn -Wredundant-decls -Wnested-externs -Wundef -Wbad-function-cast -Wcast-align -Wformat=2 -Wformat-signedness -Wformat-truncation=1 -Wno-implicit-fallthrough")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wwrite-strings -Winline -Wextra -Wmissing-noreturn -Wredundant-decls -Wundef -Wcast-align -Wformat=2 -Wformat-signedness -Wformat-truncation=1")
 else()
     message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
 endif()
