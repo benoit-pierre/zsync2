@@ -811,11 +811,12 @@ namespace zsync2 {
                     if (result != 0) {
                         issueStatusMessage("failed to retrieve from " + tryurl + ", status " + std::to_string(result));
                         status[attempt] = 1;
-                        return false;
+                        okUrls--;
                     }
                 }
             }
 
+            free(status);
             return true;
         }
 
