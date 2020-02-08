@@ -927,7 +927,9 @@ namespace zsync2 {
             // down the zsync_state as we are done on the file transfer. Getting the
             // current name of the file at the same time.
             auto mtime = zsync_mtime(zsHandle);
-            tempFilePath = zsync_end(zsHandle);
+            // zsync_end returns a malloc'ed char*!
+            char* temp_file_path = zsync_end(zsHandle);
+            tempFilePath = temp_file_path;
             zsHandle = nullptr;
 
             // step 5: replace original file by completed .part file
@@ -949,7 +951,7 @@ namespace zsync2 {
                         oss << "Failed to copy permissions to new file: " << strerror(errCode);
                         issueStatusMessage(oss.str());
                     } else {
-                        chmod(tempFilePath.c_str(), newPerms);
+                        chmod(temp_file_path, newPerms);
                     }
 
                     if (link(pathToLocalFile.c_str(), oldFileBackup.c_str()) != 0) {
@@ -969,7 +971,7 @@ namespace zsync2 {
                 }
 
                 if (ok) {
-                    if (rename(tempFilePath.c_str(), pathToLocalFile.c_str()) == 0) {
+                    if (rename(temp_file_path, pathToLocalFile.c_str()) == 0) {
                         // success, setting mtime
                         if (mtime != -1)
                             setMtime(mtime);
@@ -989,6 +991,8 @@ namespace zsync2 {
             // final stats and cleanup
             issueStatusMessage("used " + std::to_string(localUsed) + " local, fetched " + std::to_string(httpDown));
             state = DONE;
+
+            free(temp_file_path);
             return true;
         }
 
