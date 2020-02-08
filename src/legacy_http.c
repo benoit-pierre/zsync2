@@ -230,6 +230,8 @@ HTTP_FILE *http_fetch_ranges(struct range_fetch* rf)
         rf->rangessent = 0;
     }else{
         /* free the old file and buffer, ready for the new one */
+        curl_multi_remove_handle(rf->multi_handle, rf->file->handle.curl);
+        curl_easy_cleanup(rf->file->handle.curl);
         if(rf->file->buffer){
             free(rf->file->buffer);
         }
@@ -271,6 +273,7 @@ int http_fclose(HTTP_FILE *file, CURLM* multi_handle)
         free(file->buffer);
     }
     free(file);
+    curl_multi_cleanup(multi_handle);
     return 0;
 }
 
