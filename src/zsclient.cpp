@@ -1004,6 +1004,7 @@ namespace zsync2 {
             // make sure pathToLocalFile is set
             if (!populatePathToLocalFileFromZSyncFile(zs)) {
                 issueStatusMessage("Failed to read filename from .zsync file!");
+                zsync_end(zs);
                 return false;
             }
 
@@ -1012,6 +1013,7 @@ namespace zsync2 {
                 // Not actually a full download if we have seed file(s) ;).
                 issueStatusMessage("Cannot find file " + pathToLocalFile + ", triggering " + (seedFiles.size() == 0U ? "full" : "delta") + " download");
                 updateAvailable = true;
+                zsync_end(zs);
                 return true;
             }
 
@@ -1021,6 +1023,7 @@ namespace zsync2 {
 
                     if (fh < 0) {
                         issueStatusMessage("Error opening file " + pathToLocalFile);
+                        zsync_end(zs);
                         return false;
                     }
 
@@ -1036,6 +1039,7 @@ namespace zsync2 {
                         default:
                             // unknown/invalid return value
                             close(fh);
+                            zsync_end(zs);
                             return false;
                     }
 
@@ -1045,6 +1049,7 @@ namespace zsync2 {
                 case 1: {
                     struct stat appImageStat;
                     if (stat(pathToLocalFile.c_str(), &appImageStat) != 0) {
+                        zsync_end(zs);
                         return false;
                     }
 
@@ -1053,10 +1058,12 @@ namespace zsync2 {
                 }
                 default: {
                     issueStatusMessage("Unknown update method: " + std::to_string(method));
+                    zsync_end(zs);
                     return false;
                 }
             }
 
+            zsync_end(zs);
             return true;
         }
 

@@ -381,7 +381,7 @@ static int zsync_read_blocksums(struct zsync_state *zs, FILE * f,
  * E.g. Tue, 25 Jul 2006 20:02:17 +0000
  */
 static time_t parse_822(const char* ts) {
-    struct tm t;
+    struct tm t = { 0 };
 
     if (strptime(ts, "%a, %d %b %Y %H:%M:%S %z", &t) == NULL
         && strptime(ts, "%d %b %Y %H:%M:%S %z", &t) == NULL) {
@@ -539,7 +539,8 @@ int zsync_submit_source_file(struct zsync_state *zs, FILE * f, int progress) {
 
 static char *zsync_cur_filename(struct zsync_state *zs) {
     if (!zs->cur_filename)
-        zs->cur_filename = rcksum_filename(zs->rs);
+        if (zs->rs)
+            zs->cur_filename = rcksum_filename(zs->rs);
 
     return zs->cur_filename;
 }
