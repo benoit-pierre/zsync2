@@ -158,7 +158,7 @@ namespace zsync2 {
                     return nullptr;
                 }
 
-                auto checkResponseForError = [this](cpr::Response response, unsigned int statusCode) {
+                auto checkResponseForError = [this](cpr::Response response, int32_t statusCode) {
                     if (response.status_code != statusCode) {
                         issueStatusMessage("Bad status code " + std::to_string(response.status_code) +
                                            " while trying to download .zsync file!");
@@ -265,7 +265,7 @@ namespace zsync2 {
                         }
                     }
 
-                    response.header;
+//                    response.header;
 
                     return true;
                 };
@@ -676,7 +676,7 @@ namespace zsync2 {
             // NOTE: We *technically* ought to be checking the ranges in detail (i.e., start:end pairs),
             //       but this does the job, and it is much simpler.
             // Counters have to be static, since this happens across subsequent fetchRemainingBlocksHttp calls.
-            static int last_nrange;
+            static size_t last_nrange;
             static unsigned int retries;
             bool fudge_ranges = false;
             if (ranges.size() == last_nrange) {
@@ -720,7 +720,7 @@ namespace zsync2 {
                 do_progress(p, (float) calculateProgress() * 100.0f,
                                         range_fetch_bytes_down(rf));
                 #endif
-                int len;
+                int len = 0;
                 for (const auto& pair : ranges) {
                     auto beginbyte = pair.first;
                     auto endbyte = pair.second;
@@ -941,7 +941,7 @@ namespace zsync2 {
                     unlink(oldFileBackup.c_str());
 
                     // copy permissions from old file
-                    mode_t newPerms;
+                    mode_t newPerms = 0;
                     auto errCode = getPerms(pathToLocalFile, newPerms);
 
                     if (errCode != 0) {

@@ -18,7 +18,7 @@
 #include <cpr/cpr.h>
 
 namespace zsync2 {
-    static inline bool ltrim(std::string &s, char to_trim = ' ') {
+    static inline bool ltrim(std::string &s) {
         // TODO: find more efficient way to check whether elements have been removed
         size_t initialLength = s.length();
         s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
@@ -27,7 +27,7 @@ namespace zsync2 {
         return s.length() < initialLength;
     }
 
-    static inline bool rtrim(std::string &s, char to_trim = ' ') {
+    static inline bool rtrim(std::string &s) {
         // TODO: find more efficient way to check whether elements have been removed
         auto initialLength = s.length();
         s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
@@ -36,10 +36,10 @@ namespace zsync2 {
         return s.length() < initialLength;
     }
 
-    static inline bool trim(std::string &s, char to_trim = ' ') {
+    static inline bool trim(std::string &s) {
         // returns true if either modifies s
-        auto ltrim_result = ltrim(s, to_trim);
-        return rtrim(s, to_trim) && ltrim_result;
+        auto ltrim_result = ltrim(s);
+        return rtrim(s) && ltrim_result;
     }
 
     static inline bool isfile(const std::string& path) {
