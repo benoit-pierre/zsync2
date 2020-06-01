@@ -69,7 +69,6 @@ namespace zsync2 {
             std::string pathOrUrlToZSyncFile,
             const std::string& pathToLocalFile,
             const bool overwrite,
-            const std::string& refererUrl
         ) : pathOrUrlToZSyncFile(std::move(pathOrUrlToZSyncFile)), zsHandle(nullptr), state(INITIALIZED),
                                  localUsed(0), httpDown(0), remoteFileSizeCache(-1),
                                  zSyncFileStoredLocallyAlready(false), rangesOptimizationThreshold(64 * 4096) {
@@ -78,11 +77,6 @@ namespace zsync2 {
                 this->pathToLocalFile = pathToLocalFile;
             } else {
                 this->seedFiles.insert(pathToLocalFile);
-            }
-
-            // if we specified a referer URL, use it
-            if (!refererUrl.empty() && refererUrl.back() == '/') {
-                this->referer = refererUrl;
             }
 
             // initialize cwd
@@ -1103,8 +1097,8 @@ namespace zsync2 {
         }
     };
 
-    ZSyncClient::ZSyncClient(const std::string pathOrUrlToZSyncFile, const std::string pathToLocalFile, bool overwrite, const std::string refererUrl) {
-        d = new Private(pathOrUrlToZSyncFile, pathToLocalFile, overwrite, refererUrl);
+    ZSyncClient::ZSyncClient(const std::string pathOrUrlToZSyncFile, const std::string pathToLocalFile, bool overwrite) {
+        d = new Private(pathOrUrlToZSyncFile, pathToLocalFile, overwrite);
     }
     ZSyncClient::~ZSyncClient() {
         delete d;

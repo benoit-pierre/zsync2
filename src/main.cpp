@@ -47,11 +47,6 @@ int main(const int argc, const char** argv) {
         {'o', "output"}
     );
 
-    args::ValueFlag<string> refererUrl(parser, "URL",
-        "Referer URL. If not given, URL in .zsync file will be used.",
-        {'u', "url"}
-    );
-
     args::Flag forceUpdate(parser, "", "Skip update check and force update", {"force-update"});
 
     args::Flag quietMode(parser, "", "Quiet mode", {'s', 'q', "silent-mode"});
@@ -121,17 +116,7 @@ int main(const int argc, const char** argv) {
         outPath = outputFilename.Get();
     }
 
-    string refUrl;
-
-    if (refererUrl) {
-        refUrl = refererUrl.Get();
-        if (!refUrl.empty() && refUrl.back() != '/') {
-            cerr << "Referer URL must actually be an URL (i.e., end with a /)!" << endl << ends;
-            return 1;
-        }
-    }
-
-    zsync2::ZSyncClient client(pathOrUrl.Get(), outPath, true, refUrl);
+    zsync2::ZSyncClient client(pathOrUrl.Get(), outPath, true);
 
     // unimplemented flags
     if (httpInsecureMode)
