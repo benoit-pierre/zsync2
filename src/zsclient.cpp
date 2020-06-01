@@ -37,9 +37,9 @@ namespace zsync2 {
         // there might be more than one seed file
         // using a set to avoid duplicate entries
         std::set<std::string> seedFiles;
-        
+
         std::string userSpecifiedUrl = "";
-        
+
         const std::string pathOrUrlToZSyncFile;
         std::string pathToLocalFile;
         std::string pathToStoreZSyncFileInLocally;
@@ -70,7 +70,7 @@ namespace zsync2 {
         Private(
             std::string pathOrUrlToZSyncFile,
             const std::string& pathToLocalFile,
-            const bool overwrite,
+            const bool overwrite
         ) : pathOrUrlToZSyncFile(std::move(pathOrUrlToZSyncFile)), zsHandle(nullptr), state(INITIALIZED),
                                  localUsed(0), httpDown(0), remoteFileSizeCache(-1),
                                  zSyncFileStoredLocallyAlready(false), rangesOptimizationThreshold(64 * 4096) {
