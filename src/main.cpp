@@ -47,6 +47,11 @@ int main(const int argc, const char** argv) {
         {'o', "output"}
     );
 
+    args::ValueFlag<string> updateUrl(parser, "url",
+        "URL to get the target file",
+        {'u', "url"}
+    );
+
     args::Flag forceUpdate(parser, "", "Skip update check and force update", {"force-update"});
 
     args::Flag quietMode(parser, "", "Quiet mode", {'s', 'q', "silent-mode"});
@@ -117,6 +122,11 @@ int main(const int argc, const char** argv) {
     }
 
     zsync2::ZSyncClient client(pathOrUrl.Get(), outPath, true);
+
+    // validate parameters
+    if(updateUrl) {
+        client.setNewUrl(updateUrl.Get());
+    }
 
     // unimplemented flags
     if (httpInsecureMode)
