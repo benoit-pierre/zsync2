@@ -953,9 +953,7 @@ namespace zsync2 {
                     auto errCode = getPerms(pathToLocalFile, newPerms);
 
                     if (errCode != 0) {
-                        std::ostringstream oss;
-                        oss << "Failed to copy permissions to new file: " << strerror(errCode);
-                        issueStatusMessage(oss.str());
+                        issueStatusMessage("Failed to copy permissions to new file: " + strerror(errCode));
                     } else {
                         chmod(temp_file_path, newPerms);
                     }
@@ -982,11 +980,9 @@ namespace zsync2 {
                             setMtime(mtime);
                     } else {
                         int error = errno;
-                        std::ostringstream ss;
-                        ss << "Unable to move " << oldFileBackup << " to final file " << pathToLocalFile
-                           << ": " << strerror(error)
-                           << " - completed download left in " + tempFilePath;
-                        issueStatusMessage(ss.str());
+                        issueStatusMessage("Unable to move " + oldFileBackup + " to final file " + pathToLocalFile +
+                                           ": " + strerror(error) +
+                                           " - completed download left in " + tempFilePath);
                     }
                 }
             } else {
