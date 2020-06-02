@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/AppImage/zsync2.svg?branch=master)](https://travis-ci.org/AppImage/zsync2)
 # zsync2
 
 A rewrite of the advanced file download/sync tool zsync.
