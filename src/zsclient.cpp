@@ -953,7 +953,9 @@ namespace zsync2 {
                     auto errCode = getPerms(pathToLocalFile, newPerms);
 
                     if (errCode != 0) {
-                        issueStatusMessage("Failed to copy permissions to new file: " + strerror(errCode));
+                        std::ostringstream oss;
+                        oss << "Failed to copy permissions to new file: " << strerror(errCode);
+                        issueStatusMessage(oss.str());
                     } else {
                         chmod(temp_file_path, newPerms);
                     }
@@ -965,9 +967,11 @@ namespace zsync2 {
                     if (link(pathToLocalFile.c_str(), oldFileBackup.c_str()) != 0
                         && (errno != EPERM || rename(pathToLocalFile.c_str(), oldFileBackup.c_str()) != 0)) {
                         int error = errno;
-                        issueStatusMessage("Unable to backup previous " + pathToLocalFile + " to " + oldFileBackup +
-                                           ": " + strerror(error) +
-                                           " - completed download left in " + tempFilePath);
+                        std::ostringstream oss;
+                        oss << "Unable to backup previous " << pathToLocalFile << " to " << oldFileBackup <<
+                               ": " << strerror(error) <<
+                               " - completed download left in " << tempFilePath;
+                        issueStatusMessage(oss.str());
                         // prevent overwrite of old file below
                         ok = false;
                     }
@@ -980,9 +984,11 @@ namespace zsync2 {
                             setMtime(mtime);
                     } else {
                         int error = errno;
-                        issueStatusMessage("Unable to move " + oldFileBackup + " to final file " + pathToLocalFile +
-                                           ": " + strerror(error) +
-                                           " - completed download left in " + tempFilePath);
+                        std::ostringstream oss;
+                        oss << "Unable to move " << oldFileBackup << " to final file " << pathToLocalFile <<
+                               ": " << strerror(error) <<
+                               " - completed download left in " << tempFilePath;
+                        issueStatusMessage(oss.str());
                     }
                 }
             } else {
