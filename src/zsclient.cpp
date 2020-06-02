@@ -38,7 +38,7 @@ namespace zsync2 {
         // using a set to avoid duplicate entries
         std::set<std::string> seedFiles;
 
-        std::string userSpecifiedUrl = "";
+        std::string userSpecifiedRefererUrl;
 
         const std::string pathOrUrlToZSyncFile;
         std::string pathToLocalFile;
@@ -609,17 +609,18 @@ namespace zsync2 {
             // URL might be relative -- we need an absolute URL to do a fetch
             std::string absoluteUrl;
 
-            if (!userSpecifiedUrl.empty()) {
-                absoluteUrl = userSpecifiedUrl;
-            } else {
-                if (!makeUrlAbsolute(referer, url, absoluteUrl)) {
-                    issueStatusMessage("URL '" + url + "' from .zsync file is relative, which cannot be resolved without "
-                                       "knowing the URL to the .zsync file (you're most likely trying to use a .zsync "
-                                       "file you downloaded from the internet). Without knowing the original URL, it is "
-                                       "impossible to resolve the URL from the .zsync file. Please specify a URL with the "
-                                       "-u flag, or edit and fix the lines in the .zsync file directly.");
-                    return -1;
-                }
+            // If we specified a custom referer URL, use it
+            if (!userSpecifiedRefererUrl.empty() && userSpecifiedRefererUrl.back() == '/') {
+                referer = userSpecifiedRefererUrl;
+            }
+
+            if (!makeUrlAbsolute(referer, url, absoluteUrl)) {
+                issueStatusMessage("URL '" + url + "' from .zsync file is relative, which cannot be resolved without "
+                                   "knowing the URL to the .zsync file (you're most likely trying to use a .zsync "
+                                   "file you downloaded from the internet). Without knowing the original URL, it is "
+                                   "impossible to resolve the URL from the .zsync file. Please specify a URL with the "
+                                   "-u flag, or edit and fix the lines in the .zsync file directly.");
+                return -1;
             }
 
             // follow redirections of the URL before passing it to libzsync to avoid unnecessary redirects for
@@ -1107,8 +1108,8 @@ namespace zsync2 {
         }
     };
 
-    void ZSyncClient::setNewUrl(const std::string& url) {
-        d->userSpecifiedUrl = url;
+    void ZSyncClient::setNewRefererUrl(const std::string& url) {
+        d->userSpecifiedRefererUrl = url;
     }
 
     ZSyncClient::ZSyncClient(const std::string pathOrUrlToZSyncFile, const std::string pathToLocalFile, bool overwrite) {

@@ -47,8 +47,8 @@ int main(const int argc, const char** argv) {
         {'o', "output"}
     );
 
-    args::ValueFlag<string> updateUrl(parser, "url",
-        "URL to get the target file",
+    args::ValueFlag<string> refererUrl(parser, "URL",
+        "Referer URL. If not given, URL in .zsync file will be used.",
         {'u', "url"}
     );
 
@@ -124,8 +124,13 @@ int main(const int argc, const char** argv) {
     zsync2::ZSyncClient client(pathOrUrl.Get(), outPath, true);
 
     // validate parameters
-    if(updateUrl) {
-        client.setNewUrl(updateUrl.Get());
+    if (refererUrl) {
+        string refUrl = refererUrl.Get();
+        if (!refUrl.empty() && refUrl.back() != '/') {
+            cerr << "Referer URL must actually be an URL (i.e., end with a /)!" << endl << ends;
+            return 1;
+        }
+        client.setNewRefererUrl(refUrl);
     }
 
     // unimplemented flags
