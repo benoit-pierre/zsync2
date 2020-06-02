@@ -960,16 +960,15 @@ namespace zsync2 {
                         chmod(temp_file_path, newPerms);
                     }
 
-                    if (link(pathToLocalFile.c_str(), oldFileBackup.c_str()) != 0) {
-                        issueStatusMessage("Unable to backup " + pathToLocalFile + " to " + oldFileBackup);
-                        ok = false;
-                    } else if (errno == EPERM) {
+                    // Try linking the filename to the backup file name, so we will
+                    // atomically replace the target file in the next step.
+                    // If that fails due to EPERM, it is probably a filesystem that doesn't support hard-links:
+                    // so try just renaming it to the backup filename.
+                    if (link(pathToLocalFile.c_str(), oldFileBackup.c_str()) != 0
+                        && (errno != EPERM || rename(pathToLocalFile.c_str(), oldFileBackup.c_str()) != 0)) {
                         int error = errno;
-                        issueStatusMessage("Unable to backup " + pathToLocalFile + " to " + oldFileBackup +
-                                           ": " + strerror(error));
-                        ok = false;
-                    } else if (rename(pathToLocalFile.c_str(), oldFileBackup.c_str()) != 0) {
-                        issueStatusMessage("Unable to back up " + pathToLocalFile + " to old file " + oldFileBackup +
+                        issueStatusMessage("Unable to backup previous " + pathToLocalFile + " to " + oldFileBackup +
+                                           ": " + strerror(error) +
                                            " - completed download left in " + tempFilePath);
                         // prevent overwrite of old file below
                         ok = false;
