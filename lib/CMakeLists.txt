@@ -38,8 +38,8 @@ target_sources(args INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/args/args.hxx")
 target_include_directories(args INTERFACE args)
 
 # Google Test framework
-if(BUILD_TESTING AND NOT TARGET gtest)
-    add_subdirectory(gtest EXCLUDE_FROM_ALL)
+if(BUILD_TESTING AND NOT TARGET GTest::gtest)
+    find_package(GTest REQUIRED)
 endif()
 
 # minimal zlib-licensed hash library
