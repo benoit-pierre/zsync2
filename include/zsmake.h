@@ -42,7 +42,7 @@ namespace zsync2 {
         // getHeaderFields() can be used to check whether a header with a given key exists already
         // beware that this function does not check whether any essential headers are set, these will be silently
         // overwritten within dump()
-        bool addCustomHeaderField(const std::string& key, const std::string& value);
+        void addCustomHeaderField(const std::string& key, const std::string& value);
 
         // returns all custom headers set by the user
         std::map<std::string, std::string> getCustomHeaderFields();
