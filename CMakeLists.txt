@@ -87,6 +87,9 @@ else()
     message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
 endif()
 
+# makes linking to static libraries easier
+option(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # add libraries shipped along with the project
 add_subdirectory(lib)
 
