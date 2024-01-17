@@ -530,7 +530,7 @@ int range_fetch_read_http_headers(struct range_fetch *rf) {
         if (buf[0] == 0)
             return 0;           /* EOF, caller decides if that's an error */
         if (memcmp(buf, "HTTP/", 5) != 0 || (p = strchr(buf, ' ')) == NULL) {
-            log_message("got non-HTTP response '%s'\n", buf);
+            log_message("got non-HTTP response '%s'", buf);
             return -1;
         }
         status = atoi(p + 1);
