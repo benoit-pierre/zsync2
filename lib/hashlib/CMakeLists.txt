@@ -1,5 +1,6 @@
 # minimal zlib-licensed hash library
 # courtesy of Stephan Brumme
+# https://github.com/stbrumme/hash-library @ d389d18112bcf7e4786ec5e8723f3658a7f433d7
 
 cmake_minimum_required(VERSION 3.2)
 
