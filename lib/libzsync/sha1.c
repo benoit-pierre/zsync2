@@ -1,4 +1,4 @@
-/*	$OpenBSD: sha1.c,v 1.19 2004/05/28 15:10:27 millert Exp $	*/
+/*	$OpenBSD: sha1.c,v 1.27 2019/06/07 22:56:36 dtucker Exp $	*/
 
 /*
  * SHA-1 in C
@@ -16,23 +16,13 @@
 
 #include "zsglobal.h"
 
-#if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$OpenBSD: sha1.c,v 1.19 2004/05/28 15:10:27 millert Exp $";
-#endif /* LIBC_SCCS and not lint */
+#ifndef WITH_OPENSSL
 
-#include <sys/param.h>
-#include <stdint.h>
+#include <sys/types.h>
 #include <string.h>
 #include "sha1.h"
 
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
-
-/* Map Solaris endian stuff to something useful */
-#if defined(_BIG_ENDIAN) && !defined(_BYTE_ORDER)
-#define LITTLE_ENDIAN 0
-#define BIG_ENDIAN 1
-#define BYTE_ORDER 1
-#endif
 
 /*
  * blk0() and blk() perform the initial expand.
@@ -56,6 +46,11 @@ static const char rcsid[] = "$OpenBSD: sha1.c,v 1.19 2004/05/28 15:10:27 millert
 #define R3(v,w,x,y,z,i) z+=(((w|x)&y)|(w&x))+blk(i)+0x8F1BBCDC+rol(v,5);w=rol(w,30);
 #define R4(v,w,x,y,z,i) z+=(w^x^y)+blk(i)+0xCA62C1D6+rol(v,5);w=rol(w,30);
 
+typedef union {
+	uint8_t c[64];
+	uint32_t l[16];
+} CHAR64LONG16;
+
 /*
  * Hash a single 512-bit block. This is the core of the algorithm.
  */
@@ -64,10 +59,6 @@ SHA1Transform(uint32_t state[5], const uint8_t buffer[SHA1_BLOCK_LENGTH])
 {
 	uint32_t a, b, c, d, e;
 	uint8_t workspace[SHA1_BLOCK_LENGTH];
-	typedef union {
-		uint8_t c[64];
-		uint32_t l[16];
-	} CHAR64LONG16;
 	CHAR64LONG16 *block = (CHAR64LONG16 *)workspace;
 
 	(void)memcpy(block, buffer, SHA1_BLOCK_LENGTH);
@@ -139,7 +130,7 @@ SHA1Update(SHA1_CTX *context, const uint8_t *data, size_t len)
 	size_t i, j;
 
 	j = (size_t)((context->count >> 3) & 63);
-	context->count += (len << 3);
+	context->count += ((uint64_t)len << 3);
 	if ((j + len) > 63) {
 		(void)memcpy(&context->buffer[j], data, (i = 64-j));
 		SHA1Transform(context->state, context->buffer);
@@ -160,7 +151,7 @@ void
 SHA1Pad(SHA1_CTX *context)
 {
 	uint8_t finalcount[8];
-	uint8_t i;
+	uint i;
 
 	for (i = 0; i < 8; i++) {
 		finalcount[i] = (uint8_t)((context->count >>
@@ -175,14 +166,13 @@ SHA1Pad(SHA1_CTX *context)
 void
 SHA1Final(uint8_t digest[SHA1_DIGEST_LENGTH], SHA1_CTX *context)
 {
-	uint8_t i;
+	uint i;
 
 	SHA1Pad(context);
-	if (digest) {
-		for (i = 0; i < SHA1_DIGEST_LENGTH; i++) {
-			digest[i] = (uint8_t)
-			   ((context->state[i>>2] >> ((3-(i & 3)) * 8) ) & 255);
-		}
-		memset(context, 0, sizeof(*context));
+	for (i = 0; i < SHA1_DIGEST_LENGTH; i++) {
+		digest[i] = (uint8_t)
+		   ((context->state[i>>2] >> ((3-(i & 3)) * 8) ) & 255);
 	}
+	explicit_bzero(context, sizeof(*context));
 }
+#endif /* !WITH_OPENSSL */

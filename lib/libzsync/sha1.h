@@ -1,4 +1,4 @@
-/*	$OpenBSD: sha1.h,v 1.23 2004/06/22 01:57:30 jfb Exp $	*/
+/*	$OpenBSD: sha1.h,v 1.24 2012/12/05 23:19:57 deraadt Exp $	*/
 
 /*
  * SHA-1 in C
@@ -11,11 +11,9 @@
 
 #include "zsglobal.h"
 
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
-#else
-#include <sys/types.h>
-#endif
+#ifndef WITH_OPENSSL
+
+#include <stdint.h>
 
 #define	SHA1_BLOCK_LENGTH		64
 #define	SHA1_DIGEST_LENGTH		20
@@ -30,21 +28,21 @@ typedef struct {
 void SHA1Init(SHA1_CTX *);
 void SHA1Pad(SHA1_CTX *);
 void SHA1Transform(uint32_t [5], const uint8_t [SHA1_BLOCK_LENGTH])
-		ZS_DECL_BOUNDED(__minbytes__,1,5)
-		ZS_DECL_BOUNDED(__minbytes__,2,SHA1_BLOCK_LENGTH);
+	ZS_DECL_BOUNDED(__minbytes__,1,5)
+	ZS_DECL_BOUNDED(__minbytes__,2,SHA1_BLOCK_LENGTH);
 void SHA1Update(SHA1_CTX *, const uint8_t *, size_t)
-		ZS_DECL_BOUNDED(__string__,2,3);
+	ZS_DECL_BOUNDED(__string__,2,3);
 void SHA1Final(uint8_t [SHA1_DIGEST_LENGTH], SHA1_CTX *)
-		ZS_DECL_BOUNDED(__minbytes__,1,SHA1_DIGEST_LENGTH);
+	ZS_DECL_BOUNDED(__minbytes__,1,SHA1_DIGEST_LENGTH);
 char *SHA1End(SHA1_CTX *, char *)
-		ZS_DECL_BOUNDED(__minbytes__,2,SHA1_DIGEST_STRING_LENGTH);
+	ZS_DECL_BOUNDED(__minbytes__,2,SHA1_DIGEST_STRING_LENGTH);
 char *SHA1File(const char *, char *)
-		ZS_DECL_BOUNDED(__minbytes__,2,SHA1_DIGEST_STRING_LENGTH);
+	ZS_DECL_BOUNDED(__minbytes__,2,SHA1_DIGEST_STRING_LENGTH);
 char *SHA1FileChunk(const char *, char *, off_t, off_t)
-		ZS_DECL_BOUNDED(__minbytes__,2,SHA1_DIGEST_STRING_LENGTH);
+	ZS_DECL_BOUNDED(__minbytes__,2,SHA1_DIGEST_STRING_LENGTH);
 char *SHA1Data(const uint8_t *, size_t, char *)
-		ZS_DECL_BOUNDED(__string__,1,2)
-		ZS_DECL_BOUNDED(__minbytes__,3,SHA1_DIGEST_STRING_LENGTH);
+	ZS_DECL_BOUNDED(__string__,1,2)
+	ZS_DECL_BOUNDED(__minbytes__,3,SHA1_DIGEST_STRING_LENGTH);
 
 #define HTONDIGEST(x) do {                                              \
         x[0] = htonl(x[0]);                                             \
@@ -60,4 +58,5 @@ char *SHA1Data(const uint8_t *, size_t, char *)
         x[3] = ntohl(x[3]);                                             \
         x[4] = ntohl(x[4]); } while (0)
 
+#endif /* !WITH_OPENSSL */
 #endif /* _SHA1_H */
