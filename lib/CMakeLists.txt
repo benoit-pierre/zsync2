@@ -22,11 +22,7 @@ set(BUILD_SHARED_LIBS OFF)
 
 # there is no need to build our own libcurl
 # in fact, building it as a static lib creates a whole circus of problems, and also takes time
-set(CPR_FORCE_USE_SYSTEM_CURL ON)
-
-# there is no need to build our own libcurl
-# in fact, building it as a static lib creates a whole circus of problems, and also takes time
-set(CPR_FORCE_USE_SYSTEM_CURL ON)
+set(CPR_USE_SYSTEM_CURL ON)
 
 add_subdirectory(cpr)
 # since we want to have static builds of cpr, we have to enable -fPIC manually

@@ -3,6 +3,7 @@
 
 // system includes
 #include <iostream>
+#include <cstring>
 #include <deque>
 #include <fcntl.h>
 #include <set>

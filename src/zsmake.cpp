@@ -1,5 +1,6 @@
 // system headers
 #include <arpa/inet.h>
+#include <cstring>
 #include <cmath>
 #include <iomanip>
 #include <iostream>
@@ -295,7 +296,6 @@ namespace zsync2 {
 
         void addCustomHeaderField(const std::string& key, const std::string& value) {
             customHeaderFields[key] = value;
-            return rv;
         }
     };
 
