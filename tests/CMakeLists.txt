@@ -9,5 +9,4 @@ find_package(GTest REQUIRED)
 
 add_executable(test_zsutil test_zsutil.cpp)
 target_link_libraries(test_zsutil GTest::gtest ${CPR_LIBRARIES})
-
-add_test(NAME test_zsutil COMMAND test_zsutil)
+gtest_discover_tests(test_zsutil)
