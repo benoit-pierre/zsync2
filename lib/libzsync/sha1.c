@@ -151,7 +151,7 @@ void
 SHA1Pad(SHA1_CTX *context)
 {
 	uint8_t finalcount[8];
-	uint i;
+	unsigned int i;
 
 	for (i = 0; i < 8; i++) {
 		finalcount[i] = (uint8_t)((context->count >>
@@ -166,13 +166,13 @@ SHA1Pad(SHA1_CTX *context)
 void
 SHA1Final(uint8_t digest[SHA1_DIGEST_LENGTH], SHA1_CTX *context)
 {
-	uint i;
+	unsigned int i;
 
 	SHA1Pad(context);
 	for (i = 0; i < SHA1_DIGEST_LENGTH; i++) {
 		digest[i] = (uint8_t)
 		   ((context->state[i>>2] >> ((3-(i & 3)) * 8) ) & 255);
 	}
-	explicit_bzero(context, sizeof(*context));
+	memset(context, 0, sizeof(*context));
 }
 #endif /* !WITH_OPENSSL */
