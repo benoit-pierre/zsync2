@@ -100,6 +100,3 @@ add_subdirectory(src)
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
-
-# finally, generate export configs
-include(cmake/export.cmake)
