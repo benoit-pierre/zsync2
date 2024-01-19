@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.2)
-
 set(CMAKE_POSITION_INDEPENDENT_CODE true)
 set(CMAKE_INCLUDE_CURRENT_DIR true)
 
