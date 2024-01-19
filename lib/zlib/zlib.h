@@ -1448,7 +1448,9 @@ ZEXTERN z_size_t ZEXPORT gzfread(voidp buf, z_size_t size, z_size_t nitems,
    file, resetting and retrying on end-of-file, when size is not 1.
 */
 
+#if 0
 ZEXTERN int ZEXPORT gzwrite(gzFile file, voidpc buf, unsigned len);
+#endif
 /*
      Compress and write the len uncompressed bytes at buf to file. gzwrite
    returns the number of uncompressed bytes written or 0 in case of error.
@@ -1775,6 +1777,8 @@ ZEXTERN uLong ZEXPORT crc32_combine_op(uLong crc1, uLong crc2, uLong op);
    crc32_combine() if the generated op is used more than once.
 */
 
+ZEXTERN int ZEXPORT updatewindow(z_streamp strm, const unsigned char FAR *end, unsigned copy);
+ZEXTERN void ZEXPORT inflate_advance(z_streamp strm, int zoffset, int b, int s);
 
                         /* various hacks, don't look :) */
 
@@ -1913,6 +1917,7 @@ ZEXTERN int ZEXPORT gzgetc_(gzFile file);       /* backward compatibility */
 /* undocumented functions */
 ZEXTERN const char   * ZEXPORT zError(int);
 ZEXTERN int            ZEXPORT inflateSyncPoint(z_streamp);
+ZEXTERN int            ZEXPORT inflateSafePoint(z_streamp);
 ZEXTERN const z_crc_t FAR * ZEXPORT get_crc_table(void);
 ZEXTERN int            ZEXPORT inflateUndermine(z_streamp, int);
 ZEXTERN int            ZEXPORT inflateValidate(z_streamp, int);

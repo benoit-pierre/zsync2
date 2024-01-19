@@ -6,6 +6,12 @@
 /*
  * Change history:
  *
+ * cph          26 Oct 2004
+ * - A few minor hacks to allow me to locate safe start points in streams
+ *   and to position a new inflate on the right bit. I hereby place any
+ *   changes to this file (and the zlib.h and inflate.h in this dir) into
+ *   the public domain.
+ *
  * 1.2.beta0    24 Nov 2002
  * - First version -- complete rewrite of inflate to simplify code, avoid
  *   creation of window when not needed, minimize use of window when it is
@@ -83,7 +89,7 @@
 #include "zutil.h"
 #include "inftrees.h"
 #include "inflate.h"
-#include "inffast.h"
+//#include "inffast.h"
 
 #ifdef MAKEFIXED
 #  ifndef BUILDFIXED
@@ -365,7 +371,7 @@ void makefixed(void)
    output will fall in the output data, making match copies simpler and faster.
    The advantage may be dependent on the size of the processor's data caches.
  */
-local int updatewindow(z_streamp strm, const Bytef *end, unsigned copy) {
+int updatewindow(z_streamp strm, const Bytef *end, unsigned copy) {
     struct inflate_state FAR *state;
     unsigned dist;
 
@@ -1022,8 +1028,13 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
                 /* fallthrough */
         case LEN_:
             state->mode = LEN;
-                /* fallthrough */
+            /* fallthrough */
         case LEN:
+            state->mode = LENDO;
+            goto inf_leave;
+        case LENDO:
+        /* cph - remove inflate_fast */
+            /*
             if (have >= 6 && left >= 258) {
                 RESTORE();
                 inflate_fast(strm, out);
@@ -1032,6 +1043,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
                     state->back = -1;
                 break;
             }
+            */
             state->back = 0;
             for (;;) {
                 here = state->lencode[BITS(state->lenbits)];
@@ -1523,4 +1535,48 @@ unsigned long ZEXPORT inflateCodesUsed(z_streamp strm) {
     if (inflateStateCheck(strm)) return (unsigned long)-1;
     state = (struct inflate_state FAR *)strm->state;
     return (unsigned long)(state->next - state->codes);
+}
+
+/* cph 2004/10/17
+ * Extra stuff I need to move around in gzip files
+ */
+
+void inflate_advance(strm, zoffset, b, s)
+     z_streamp strm;
+     int zoffset;
+     int b;
+     int s;
+{
+  struct inflate_state FAR* state = (struct inflate_state FAR *)strm->state;
+
+  if (s)
+    state->mode = TYPEDO;
+  else if (state->mode == COPY) {
+    /* Reduce length remaining to copy by correct number */
+    state->length -= zoffset - strm->total_in;
+  } else
+    state->mode = LENDO;
+
+  strm->total_in = zoffset; /* We are here, plus a few more bits. */
+
+  if (b) {
+    state->hold = *(strm->next_in)++;
+    state->hold >>= b;
+    state->bits = 8-b;
+    strm->avail_in--;
+    strm->total_in++;
+  } else {
+    state->bits = 0;
+    state->hold = 0;
+  }
+}
+
+int ZEXPORT inflateSafePoint(strm)
+z_streamp strm;
+{
+    struct inflate_state FAR *state;
+
+    if (inflateStateCheck(strm)) return Z_STREAM_ERROR;
+    state = (struct inflate_state FAR *)strm->state;
+    return (state->mode == LENDO || state->mode == COPY);
 }
