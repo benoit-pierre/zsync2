@@ -12,7 +12,6 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 set(HASHLIB_SRCS
     ${PROJECT_SOURCE_DIR}/src/crc32.cpp
-    ${PROJECT_SOURCE_DIR}/src/digest.cpp
     ${PROJECT_SOURCE_DIR}/src/keccak.cpp
     ${PROJECT_SOURCE_DIR}/src/md5.cpp
     ${PROJECT_SOURCE_DIR}/src/sha1.cpp
