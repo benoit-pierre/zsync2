@@ -8,6 +8,8 @@
 #ifndef ZCONF_H
 #define ZCONF_H
 
+#define Z_PREFIX
+
 /*
  * If you *really* need a unique prefix for all types and library functions,
  * compile with -DZ_PREFIX. The "standard" zlib should be compiled without it.
@@ -165,6 +167,8 @@
 /* all zlib structs in zlib.h and zconf.h */
 #  define gz_header_s           z_gz_header_s
 #  define internal_state        z_internal_state
+
+#  define z_errmsg              z_z_errmsg
 
 #endif
 
